@@ -1,0 +1,291 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>EVA Model Projections · NBA</title>
+<link rel="icon" href="../favicon.ico?v=3" sizes="48x48">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg?v=3">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png?v=3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+body{margin:0;padding:0}[hidden]{display:none!important}
+
+/* v3 "calm scoreboard": light blue-gray background, one ink color, rounded white cards, projected scores as the hero
+   (Space Grotesk numerals), soft number boxes, no green/red result colors. Three cards per row on desktop. */
+:root {
+  --bg: #EBF0F6; --card: #FFFFFF; --ink: #21252B; --mut: #767A82; --soft: #A7AAB0; --line: #E1E7EF;
+  --box: #F3F6FA; --acc: #33507A; --acc-soft: #E3EBF5; --pill: #21252B; --pill-ink: #FFFFFF;
+  --shadow: 0 1px 3px rgba(33, 37, 43, .07);
+  --font: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --num: "Space Grotesk", "Manrope", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171B; --card: #1E2126; --ink: #ECEDEF; --mut: #9CA0A8; --soft: #6E737B; --line: #2C3036;
+    --box: #25292F; --acc: #9DB6DA; --acc-soft: #253041; --pill: #ECEDEF; --pill-ink: #15171B;
+    --shadow: 0 1px 3px rgba(0, 0, 0, .35); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171B; --card: #1E2126; --ink: #ECEDEF; --mut: #9CA0A8; --soft: #6E737B; --line: #2C3036;
+  --box: #25292F; --acc: #9DB6DA; --acc-soft: #253041; --pill: #ECEDEF; --pill-ink: #15171B;
+  --shadow: 0 1px 3px rgba(0, 0, 0, .35); color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 14px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+.num { font-family: var(--num); font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 26px 16px 48px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+.wrap > * { min-width: 0; }
+h1, h2, h3 { margin: 0; letter-spacing: -.01em; }
+
+/* header */
+header { display: flex; justify-content: space-between; align-items: center; gap: 14px 20px; flex-wrap: wrap; }
+.brand h1 { font-weight: 800; font-size: clamp(1.3rem, 4vw, 1.55rem); }
+.brand p { margin: 2px 0 0; color: var(--mut); font-size: .8rem; font-weight: 500; }
+.recpill { display: flex; align-items: baseline; gap: 10px; background: var(--card); border-radius: 999px; padding: 9px 20px; box-shadow: var(--shadow); }
+.recpill b { font-size: 1.45rem; font-weight: 700; }
+.recpill span { color: var(--mut); font-size: .82rem; }
+nav.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 18px 0 24px; }
+.tabs button { font: inherit; font-weight: 600; font-size: .88rem; border: 0; background: transparent; color: var(--mut); padding: 7px 15px; border-radius: 999px; cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--pill); color: var(--pill-ink); }
+.tabs button:hover { color: var(--ink); }
+.tabs button[aria-pressed="true"]:hover { color: var(--pill-ink); }
+.tabs button:focus-visible, .seg button:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.view { display: grid; gap: 28px; min-width: 0; }
+.view[hidden] { display: none; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 14px; margin-bottom: 12px; }
+.sec-head h2 { font-size: 1.15rem; font-weight: 800; }
+.sec-head p { margin: 0; color: var(--mut); font-size: .82rem; }
+
+/* week selector */
+.seg { display: inline-flex; flex-wrap: wrap; gap: 4px; background: var(--card); border-radius: 999px; padding: 4px; box-shadow: var(--shadow); margin-bottom: 20px; }
+.seg button { font: inherit; font-weight: 600; font-size: .82rem; border: 0; background: transparent; color: var(--mut); padding: 5px 14px; border-radius: 999px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--acc-soft); color: var(--acc); }
+
+/* game cards */
+.day + .day { margin-top: 24px; }
+.day-head { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; }
+.day-head h3 { font-size: 1.02rem; font-weight: 700; }
+.day-head span { color: var(--mut); font-size: .8rem; }
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.game { background: var(--card); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); display: grid; gap: 12px; align-content: start; min-width: 0; }
+.g-top { display: flex; justify-content: space-between; color: var(--mut); font-size: .76rem; font-weight: 600; }
+.g-top .live { color: var(--acc); }
+.teams { display: grid; gap: 6px; }
+.team { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.ab { font-weight: 800; font-size: .72rem; letter-spacing: .05em; width: 2.7rem; text-align: center; padding: 3px 0 1px; border-radius: 6px; color: #FFFFFF; background: var(--c1); border-bottom: 3px solid var(--c3); }
+.nm { min-width: 0; font-weight: 600; font-size: .98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nm small { color: var(--soft); font-weight: 500; font-size: .76rem; margin-left: 6px; }
+.pj { font-size: 1.9rem; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.fin { color: var(--mut); font-size: .76rem; text-align: right; margin-top: -4px; }
+.fin b { color: var(--ink); font-weight: 600; }
+.nums { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.nums div { background: var(--box); border-radius: 8px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: .78rem; color: var(--mut); min-width: 0; }
+.nums b { color: var(--ink); font-weight: 600; font-size: .9rem; white-space: nowrap; }
+.pick { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--acc-soft); border-radius: 8px; padding: 8px 12px; }
+.pick .res, .pick .res.O { background: var(--card); }
+.pick .lab { font-size: .72rem; color: var(--mut); font-weight: 700; letter-spacing: .04em; margin-right: 6px; }
+.pick b { font-size: 1.05rem; font-weight: 700; color: var(--acc); white-space: nowrap; }
+.pick .odds { font-size: .78rem; color: var(--mut); font-weight: 500; margin-left: 4px; }
+.pick.none b { color: var(--mut); font-family: var(--font); font-size: .9rem; }
+.res { font-size: .74rem; font-weight: 700; padding: 3px 11px; border-radius: 999px; background: var(--box); color: var(--ink); white-space: nowrap; }
+.res.L { color: var(--soft); font-weight: 600; }
+.res.P { color: var(--mut); font-weight: 600; }
+.res.O { background: var(--acc-soft); color: var(--acc); }
+.res.U { color: var(--mut); font-weight: 600; }
+.foot { color: var(--mut); font-size: .74rem; margin-top: -4px; }
+.empty { background: var(--card); border-radius: 14px; padding: 14px 16px; color: var(--mut); margin: 0; box-shadow: var(--shadow); }
+
+/* how it works */
+.about { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 32px; background: var(--card); border-radius: 14px; padding: 18px 20px; box-shadow: var(--shadow); }
+.about h3 { font-size: .95rem; font-weight: 700; margin-bottom: 3px; }
+.about p { margin: 0; color: var(--mut); font-size: .86rem; max-width: 70ch; }
+.about.one { grid-template-columns: 1fr; }
+.about.one p { font-size: .92rem; max-width: 95ch; }
+footer { color: var(--soft); font-size: .78rem; margin-top: 32px; }
+
+/* power rankings */
+.panel { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--mut); font-weight: 600; padding: 12px 12px 8px; white-space: nowrap; }
+td { padding: 7px 12px; border-top: 1px solid var(--line); white-space: nowrap; vertical-align: middle; }
+.r { text-align: right; } .c { text-align: center; }
+table.rk { min-width: 600px; }
+.rk .rank { font-family: var(--num); font-weight: 700; font-size: 1.05rem; width: 2.6rem; }
+.rk .chg { font-size: .74rem; font-weight: 600; color: var(--soft); }
+.rk .chg.up { color: var(--ink); }
+.rk .tm { display: flex; align-items: center; gap: 10px; }
+.rk .tm .ab { flex: none; }
+.rk .tm b { font-weight: 600; }
+.rk .rating { font-family: var(--num); font-weight: 700; font-size: 1.05rem; }
+.rk .rating.neg { color: var(--mut); }
+.rk .sub { color: var(--mut); font-family: var(--num); }
+.barcol { width: 24%; min-width: 120px; }
+.dbar { position: relative; height: 8px; background: var(--box); border-radius: 4px; }
+.dbar::before { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--soft); }
+.dbar i { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+.dbar i.p { background: var(--acc); } .dbar i.n { background: var(--soft); }
+.qbcol { color: var(--mut); font-size: .82rem; }
+.note { margin: 12px 2px 0; color: var(--mut); font-size: .8rem; max-width: 90ch; }
+
+/* track record */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--card); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); display: grid; gap: 2px; }
+.tile .lab { font-size: .72rem; color: var(--mut); font-weight: 600; }
+.tile .big { font-family: var(--num); font-weight: 700; font-size: 1.8rem; line-height: 1.05; letter-spacing: -.02em; }
+.tile .sub { font-size: .78rem; color: var(--mut); font-family: var(--num); }
+table.tr { min-width: 480px; }
+.tr .wk { font-weight: 700; }
+.tr td.n { font-family: var(--num); }
+.tr tfoot td { font-weight: 700; border-top: 2px solid var(--line); }
+.sq { display: flex; flex-wrap: wrap; gap: 3px; }
+.sq span { width: 16px; height: 16px; border-radius: 4px; display: grid; place-items: center; font-size: .6rem; font-weight: 800; }
+.sq .W { background: var(--ink); color: var(--card); }
+.sq .L { background: var(--box); color: var(--soft); }
+.sq .P { border: 1px solid var(--soft); color: var(--soft); }
+
+@media (max-width: 960px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) {
+  .grid { grid-template-columns: 1fr; }
+  .about { grid-template-columns: 1fr; }
+  .qbcol, .barcol, .sqcol { display: none; }
+  table.rk, table.tr { min-width: 0; }
+  .rk .tm b { display: none; }
+  td, th { padding-inline: 8px; }
+}
+@media (prefers-reduced-motion: no-preference) { .tabs button, .seg button { transition: background .15s, color .15s; } }
+
+/* NBA page additions */
+.lock { min-height: 80vh; display: grid; place-items: center; padding: 16px; }
+.lock form { background: var(--card); border-radius: 16px; box-shadow: var(--shadow); padding: 22px; width: min(360px, 100%); display: grid; gap: 12px; }
+.lock h1 { font-size: 1.2rem; font-weight: 800; }
+.lock p { margin: 0; color: var(--mut); font-size: .84rem; }
+.lock input { font: inherit; font-size: 1rem; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--box); color: var(--ink); }
+.lock button { font: inherit; font-weight: 700; border: 0; border-radius: 999px; padding: 10px 14px; background: var(--pill); color: var(--pill-ink); cursor: pointer; }
+.lock .err { color: var(--acc); font-size: .8rem; min-height: 1em; }
+.sport { display: inline-block; margin-left: 8px; font-size: .7rem; font-weight: 800; letter-spacing: .08em; padding: 3px 9px; border-radius: 999px; background: var(--acc-soft); color: var(--acc); vertical-align: middle; }
+.pick { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; background: var(--box); border-radius: 10px; padding: 9px 11px; }
+.pick .mk { font-size: .66rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--mut); width: 3.4rem; }
+.pick .bet { font-weight: 700; font-size: .98rem; min-width: 0; }
+.pick .bet small { color: var(--mut); font-weight: 600; font-size: .78rem; margin-left: 4px; }
+.pick .why { grid-column: 2 / 4; color: var(--mut); font-size: .76rem; margin-top: -4px; }
+.pick .ev { font-family: var(--num); font-weight: 700; font-size: .86rem; }
+.tag { white-space: nowrap; font-size: .66rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--card); color: var(--mut); }
+.res2 { font-size: .74rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+.res2.W { background: var(--ink); color: var(--card); }
+.res2.L { background: var(--card); color: var(--soft); }
+.res2.P, .res2.pend { background: var(--card); color: var(--mut); }
+.recrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.reccard { background: var(--card); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); display: grid; gap: 10px; }
+.reccard h3 { font-size: 1rem; font-weight: 800; }
+.reccard .big { font-family: var(--num); font-weight: 700; font-size: 2rem; line-height: 1; }
+.reccard .sub { color: var(--mut); font-size: .8rem; font-family: var(--num); }
+</style></head><body>
+<div class="lock" id="lock">
+  <form id="lockform" autocomplete="off">
+    <h1>EVA Model Projections <span class="sport">NBA</span></h1>
+    <p>Private preview. Enter the access phrase.</p>
+    <input id="pw" type="password" aria-label="Access phrase" autocomplete="current-password">
+    <button type="submit">Unlock</button>
+    <div class="err" id="err" role="status"></div>
+  </form>
+</div>
+<div class="wrap" id="app" hidden>
+  <header>
+    <div class="brand"><h1>EVA Model Projections <span class="sport">NBA</span></h1><p id="upd"></p></div>
+    <div class="recpill" id="recpill"></div>
+  </header>
+  <nav class="tabs" aria-label="Pages">
+    <button data-v="picks" aria-pressed="true">Picks</button>
+    <button data-v="record" aria-pressed="false">Track Record</button>
+    <button data-v="about" aria-pressed="false">How it works</button>
+  </nav>
+  <section class="view" id="v-picks"></section>
+  <section class="view" id="v-record" hidden></section>
+  <section class="view" id="v-about" hidden>
+    <div class="about">
+      <div><h3>What gets posted</h3><p>Full-game totals and spreads where the model's price is at least 3% better than the market line at posting. Each pick is graded at the line and price it was posted at, 1 unit per pick.</p></div>
+      <div><h3>When</h3><p>Picks post in the evening, shortly after the market opens the next day's lines. That is when the model's edge is largest; it fades over the following hours.</p></div>
+      <div><h3>What the model uses</h3><p>Player ratings from results and from where lines have closed, expected minutes, the official injury report, rest and travel, and recent pace and scoring form.</p></div>
+      <div><h3>Record</h3><p>Totals and spreads are tracked separately. Early-season picks (October) are shown but not counted.</p></div>
+    </div>
+  </section>
+  <footer>For entertainment and informational purposes only.</footer>
+</div>
+<script>
+const ENC = {"salt": "vLW81TnzYllERNdY9vib9Q==", "iv": "T17Z93m/xt22HYXA", "ct": "8EcIwbntlS076VHLz6Wt8v4ijQvompE48s7QHxyRjuqP3eF9W1DtDyWWyC7bItjUoevogQbLFXvW5E/BteI2z6JDAKzy/MQ3PzWdw7LRy3rVtIwY7kTZui22hiztaNGRoTWoKCiwE1t/QVT+oMkj/J21KzVDOhxS3dOwGIphnVNbUK3bfjxvtyJK1fqF9Es8fKeljJJrxzKDI03+UVcRcas21YI9fg4b6wJxzbS9i+D5VKYC6KQoE5/JheGIcGsCzdMv33UB2VT/vy7uqIXQs1L/Pexn7U8MyAfmLo+W7HDsLVKea5cDVmwpPij1FbdKqfE+82AzDv8o9QWrnIf6xFrLHvByxVcJlzoVEvhf+IE/HRHqErgdxSW8DHMWukmNvHVytm1x66FIPttGWyKJ6ro6d73fbhRi5BXhf/lSmCtJkxP1AKXfqLly678ItabH0SKk72I2i5010Rfp26kbGTWfxT5Q31uc7OasL2zyCflH/Jt9LSnT7QmYmlr/ES6ji6/KPoFF+zl7BNXR3KQ/fcDQhir3Az+WQRb3j//KrDt2KDUeZEtfClkc5WlSQM/KSgPYXTyUEOQBxN+G9KWQLu2OxjsK+HVT6xjoOVc2tDSa+e13fdcSughhPZw/TldzT5hT5ivIllLxn7k6nrBe7Cc+SpuJOC+Q890hHwvfIGC5dSWBU94ZFeO3fwCHNYCKK4M5uft9Qed4EPhDmWU2pxcsHRlD9l63M0BeIo6zH1zFNhdwyXWvEUgnGuqALM41IbPiN4PI2SugcuCgve/vXd1Bbrvo8swHqQIOdKwev29KqaDKL/7QWAVw2AYLxP5XS7SoVJBH/91QAHE/aEwe3kcbg5Mg2Wg3Zedzew0i0E9wFk/fogGdKqzVB8LyJrjengMwc47jWhaeICrT4uATnJukx1n21cuyK+c2d19xX3a5r431WZ5YOpM3drpw+QQS5gaMTWxBQpC/s5nJHldfeM3UKxGqonBdeyE3otrlhmShBcmLxZH/MMOq3DqpaFU9CQ3IBXK+ac5bOHjuTLlmy947rp0GPN5IGUiL3WtxtI/v95v/pVu11AATuvhN3GUSPaV8cCw3g6PyCRr1FEHXlZayKJ9eM47/bfmKyg+ZP8rqRI2ROLIIxbglipbShNrfGcd829CPps7haVtAf3qmmktMNDu76gQTqR61cE3YjTR54Vo+acLPekxMomHhbcMcPi35Q0Qrc9Lv3CqWMy/71NRX/GpGDBrHDO77hytJ3jgEiVx6Lxwj71yzsXX7msQ/mt+irbjp7O3JXQ5s5OWnGPrJlY11+mt+9fLy3P0O1jnB8UKozpy7ZlPiCZEleB++okXOk+UabSbikT0/3eslonpyOxgI8R5jvg==", "iter": 210000};
+const COLORS = {ATL:["#E03A3E","#26282A"],BOS:["#007A33","#BA9653"],BKN:["#000000","#777D84"],CHA:["#1D1160","#00788C"],CHI:["#CE1141","#000000"],CLE:["#860038","#FDBB30"],DAL:["#00538C","#002B5E"],DEN:["#0E2240","#FEC524"],DET:["#C8102E","#1D42BA"],GS:["#1D428A","#FFC72C"],HOU:["#CE1141","#000000"],IND:["#002D62","#FDBB30"],LAC:["#C8102E","#1D428A"],LAL:["#552583","#FDB927"],MEM:["#5D76A9","#12173F"],MIA:["#98002E","#F9A01B"],MIL:["#00471B","#EEE1C6"],MIN:["#0C2340","#78BE20"],NO:["#0C2340","#C8102E"],NY:["#006BB6","#F58426"],OKC:["#007AC1","#EF3B24"],ORL:["#0077C0","#C4CED4"],PHI:["#006BB6","#ED174C"],PHX:["#1D1160","#E56020"],POR:["#E03A3E","#000000"],SAC:["#5A2D81","#63727A"],SA:["#000000","#C4CED4"],TOR:["#CE1141","#000000"],UTAH:["#002B5C","#F9A01B"],WSH:["#002B5C","#E31837"]};
+const NAMES = {ATL:"Hawks",BOS:"Celtics",BKN:"Nets",CHA:"Hornets",CHI:"Bulls",CLE:"Cavaliers",DAL:"Mavericks",DEN:"Nuggets",DET:"Pistons",GS:"Warriors",HOU:"Rockets",IND:"Pacers",LAC:"Clippers",LAL:"Lakers",MEM:"Grizzlies",MIA:"Heat",MIL:"Bucks",MIN:"Timberwolves",NO:"Pelicans",NY:"Knicks",OKC:"Thunder",ORL:"Magic",PHI:"76ers",PHX:"Suns",POR:"Trail Blazers",SAC:"Kings",SA:"Spurs",TOR:"Raptors",UTAH:"Jazz",WSH:"Wizards"};
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function decrypt(pass){
+  const key0 = await crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({name:"PBKDF2", salt:b64d(ENC.salt), iterations:ENC.iter, hash:"SHA-256"}, key0, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64d(ENC.iv)}, key, b64d(ENC.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const am = o => (o > 0 ? "+" : "") + o;
+const sgn = x => (x > 0 ? "+" : "") + x;
+function badge(t){ const c = COLORS[t] || ["#33507A","#21252B"]; return `<span class="ab" style="--c1:${c[0]};--c3:${c[1]}">${esc(t)}</span>`; }
+function pickRow(p){
+  const res = p.result ? `<span class="res2 ${p.result}">${p.result === "W" ? "Win" : p.result === "L" ? "Loss" : "Push"}</span>` : `<span class="res2 pend">${p.locked ? "Live" : "Pending"}</span>`;
+  const bet = p.market === "Total" ? `${p.side === "over" ? "Over" : "Under"} ${p.line}` : `${esc(p.team)} ${sgn(p.line)}`;
+  const mline = p.market === "Total" ? `Model ${p.model.toFixed(1)} · market ${p.mkt.toFixed(1)}` :
+    `Model ${p.home} ${sgn(+p.model.toFixed(1))} · market ${p.home} ${sgn(+p.mkt.toFixed(1))}`;
+  const tag = p.official ? "" : ` <span class="tag">${p.market === "Spread" && p.in_window ? "Tracking" : "Early season"}</span>`;
+  return `<div class="pick"><span class="mk">${p.market}</span><span class="bet">${bet}<small>${am(p.price)}</small>${tag}</span>${res}
+    <span class="why">${mline} · edge <span class="ev">${(p.ev*100).toFixed(1)}%</span></span></div>`;
+}
+function render(D){
+  document.getElementById("upd").textContent = "Updated " + D.updated;
+  const T = D.records.Total, S = D.records.Spread;
+  document.getElementById("recpill").innerHTML = `<b class="num">${T.w}–${T.l}${T.p ? "–" + T.p : ""}</b><span>totals record</span>`;
+  // picks grouped by date (newest first) then game
+  const byDate = {};
+  D.picks.forEach(p => { (byDate[p.date] = byDate[p.date] || {}); (byDate[p.date][p.game_id] = byDate[p.date][p.game_id] || []).push(p); });
+  const dates = Object.keys(byDate).sort().reverse();
+  let h = `<div><div class="sec-head"><h2>Picks</h2><p>Totals and spreads with at least a 3% edge at the posted line.</p></div>`;
+  if (!dates.length) h += `<p class="empty">No picks yet.</p>`;
+  dates.forEach(d => {
+    const games = Object.values(byDate[d]).sort((a, b) => a[0].tip.localeCompare(b[0].tip));
+    h += `<div class="day"><div class="day-head"><h3>${esc(games[0][0].day_label)}</h3><span>${games.length} game${games.length > 1 ? "s" : ""}</span></div><div class="grid">`;
+    games.forEach(ps => {
+      const g = ps[0];
+      const sc = g.final ? `<div class="fin">Final <b>${g.away} ${g.as} – ${g.home} ${g.hs}</b></div>` : "";
+      h += `<article class="game"><div class="g-top"><span>${esc(g.tip_label)}</span><span>${g.final ? "Final" : ""}</span></div>
+        <div class="teams"><div class="team">${badge(g.away)}<span class="nm">${esc(NAMES[g.away] || g.away)}</span><span></span></div>
+        <div class="team">${badge(g.home)}<span class="nm">${esc(NAMES[g.home] || g.home)}</span><span></span></div></div>
+        ${ps.map(pickRow).join("")}${sc}</article>`;
+    });
+    h += `</div></div>`;
+  });
+  h += `</div>`;
+  document.getElementById("v-picks").innerHTML = h;
+  const card = (name, r, note) => `<div class="reccard"><h3>${name}</h3><div class="big num">${r.w}–${r.l}${r.p ? "–" + r.p : ""}</div>
+    <div class="sub">${r.n ? ((r.w / Math.max(1, r.w + r.l)) * 100).toFixed(1) + "% · " + (r.units >= 0 ? "+" : "") + r.units.toFixed(2) + "u · ROI " + (r.roi * 100).toFixed(1) + "%" : "No graded picks yet"}</div>
+    <div class="sub">${note}</div>
+    <div class="sq">${r.seq.map(x => `<span class="${x}">${x}</span>`).join("")}</div></div>`;
+  document.getElementById("v-record").innerHTML = `<div><div class="sec-head"><h2>Track Record</h2><p>Graded at the posted line and price, 1 unit per pick. Early-season picks are not counted.</p></div>
+    <div class="recrow">${card("Totals", T, "Full-game over/under")}${card("Spreads", S, "Full-game point spread")}</div></div>`;
+}
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+  document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-" + b.dataset.v);
+}));
+async function unlock(pass, remember){
+  const D = await decrypt(pass);
+  if (remember) { try { localStorage.setItem("eva_nba_k", pass); } catch (e) {} }
+  document.getElementById("lock").hidden = true;
+  document.getElementById("app").hidden = false;
+  render(D);
+}
+document.getElementById("lockform").addEventListener("submit", async e => {
+  e.preventDefault();
+  try { await unlock(document.getElementById("pw").value.trim(), true); }
+  catch (err) { document.getElementById("err").textContent = "That phrase didn't work."; }
+});
+(async () => { let k = null; try { k = localStorage.getItem("eva_nba_k"); } catch (e) {}
+  if (k) { try { await unlock(k, false); } catch (e) { try { localStorage.removeItem("eva_nba_k"); } catch (e2) {} } } })();
+</script>
+</body></html>
